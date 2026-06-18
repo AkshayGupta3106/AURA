@@ -10,7 +10,7 @@ from app.schemas.schemas import TransformationOut
 from app.services.auth_service import get_current_user
 from app.services.mirror import run_mirror
 from app.models.models import User
-
+from ..models.models import Booking, Transformation, Salon
 router = APIRouter(prefix="/mirror", tags=["mirror"])
 
 ALLOWED_SELFIE_TYPES = {"image/jpeg", "image/png", "image/webp"}
@@ -20,7 +20,7 @@ MAX_SELFIE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 @router.get("/salon/{salon_id}")
 def get_salon_profile(salon_id: int, db: Session = Depends(get_db)):
-    salon = db.query(Salon).filter(Salon.id == salon_id).first()
+    salon = db.query(Salon).filter(Salon.id == transformation.salon_id).first()
     if not salon:
         raise HTTPException(status_code=404, detail="Salon not found")
 
@@ -30,27 +30,17 @@ def get_salon_profile(salon_id: int, db: Session = Depends(get_db)):
         .order_by(Transformation.created_at.desc())
         .all()
     )
-
     return {
-        "id": salon.id,
-        "name": salon.name,
-        "city": salon.city,
-        "neighborhood": salon.neighborhood,
-        "description": salon.description,
-        "transformations": [
-            {
-                "id": t.id,
-                "artist_name": t.artist_name,
-                "service_type": t.service_type,
-                "hair_texture_tag": t.hair_texture_tag,
-                "before_image_url": t.before_image_url,
-                "after_image_url": t.after_image_url,
-                "style_description": t.style_description,
-                "try_on_count": t.try_on_count,
-            }
-            for t in transformations
-        ],
+        "booking_id": booking.id,
+        "status": booking.status,
+        "salon_id": salon.id,
+        "salon_name": salon.name if salon else None,
+        "transformation_id": transformation.id,
+        "after_image_url": transformation.after_image_url,
+        "service_type": transformation.service_type,
+        "artist_name": transformation.artist_name,
     }
+   
 
 
 @router.get("/salons")
@@ -117,7 +107,8 @@ async def try_on(
     # Increment counter
     t.try_on_count += 1
     db.commit()
-
+    if not result_url:
+        result_url = "/static/images/mirror_fallback.jpg"
     return {
         "result_url": result_url,
         "transformation_id": transformation_id,

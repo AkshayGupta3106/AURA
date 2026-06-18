@@ -7,7 +7,7 @@ from app.database import engine
 from app.models import models  # noqa: F401 — registers all models with Base
 from app.models.models import Base
 from app.routers import auth, upload, mirror, virality, salons
-
+from app.routers import bookings
 # Create tables on startup
 Base.metadata.create_all(bind=engine)
 
@@ -35,7 +35,7 @@ app.include_router(upload.router)
 app.include_router(mirror.router)
 app.include_router(virality.router)
 app.include_router(salons.router)
-
+app.include_router(bookings.router)
 
 @app.get("/health")
 def health():

@@ -12,6 +12,7 @@ from app.schemas.schemas import TransformationOut, VideoOut
 from app.services.auth_service import get_current_user, require_creator
 from app.services.style_extractor import extract_style_description
 from app.models.models import User
+from ..models.models import Booking, Transformation, Salon
 
 router = APIRouter(prefix="/upload", tags=["upload"])
 
@@ -167,3 +168,31 @@ def create_salon(
     db.commit()
     db.refresh(salon)
     return {"id": salon.id, "name": salon.name, "city": salon.city}
+router.get("/transformations")
+def get_creator_transformations(
+    db: Session = Depends(get_db),
+    user=Depends(require_creator),
+):
+    salon = db.query(Salon).filter(Salon.owner_id == user.id).first()
+    if not salon:
+        return []
+    transformations = (
+        db.query(Transformation)
+        .filter(Transformation.salon_id == salon.id)
+        .order_by(Transformation.created_at.desc())
+        .all()
+    )
+    return [
+        {
+            "id": t.id,
+            "artist_name": t.artist_name,
+            "service_type": t.service_type,
+            "hair_texture_tag": t.hair_texture_tag,
+            "before_image_url": t.before_image_url,
+            "after_image_url": t.after_image_url,
+            "style_description": t.style_description,
+            "try_on_count": t.try_on_count,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+        }
+        for t in transformations
+    ]

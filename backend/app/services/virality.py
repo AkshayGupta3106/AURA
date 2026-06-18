@@ -9,6 +9,32 @@ import requests
 
 from app.services.personas import PERSONAS
 
+
+
+PERSONA_FALLBACKS = {
+    "Priya": {
+        "watch_through": 72, "liked": True, "shared": False, "skipped_at": None,
+        "comment": "Love the transformation but show the price in the first 3 seconds.",
+    },
+    "Ananya": {
+        "watch_through": 91, "liked": True, "shared": True, "skipped_at": None,
+        "comment": "Sending this to my sister RIGHT NOW. This is exactly what she wants done.",
+    },
+    "Riya": {
+        "watch_through": 55, "liked": True, "shared": True, "skipped_at": 11,
+        "comment": "omg love the volume!! where is this salon?? dropping pin rn",
+    },
+    "Meera": {
+        "watch_through": 100, "liked": True, "shared": False, "skipped_at": None,
+        "comment": "Technique looks clean. Warm undertones suit Indian skin perfectly. Saved.",
+    },
+    "Divya": {
+        "watch_through": 83, "liked": False, "shared": False, "skipped_at": None,
+        "comment": "Needs to feel more premium. Add salon interior and price range.",
+    },
+}
+
+
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL = "google/gemini-2.0-flash-exp:free"

@@ -8,6 +8,7 @@ import SalonProfile from "./pages/SalonProfile";
 import Explore from "./pages/Explore";
 import ViralityDashboard from "./pages/ViralityDashboard";
 
+
 function ProtectedRoute({ children, requiredRole }) {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
