@@ -1,6 +1,7 @@
 myenv
 frontend/node_modules
-*/__pycache
+__pycache__/
+*.pyc
 backend/.env
 D:\Download\AURA\backend\.env
 D:\Download\AURA\venv

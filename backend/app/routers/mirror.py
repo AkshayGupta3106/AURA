@@ -20,25 +20,31 @@ MAX_SELFIE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 @router.get("/salon/{salon_id}")
 def get_salon_profile(salon_id: int, db: Session = Depends(get_db)):
-    salon = db.query(Salon).filter(Salon.id == transformation.salon_id).first()
+    salon = db.query(Salon).filter(Salon.id == salon_id).first()
     if not salon:
         raise HTTPException(status_code=404, detail="Salon not found")
 
-    transformations = (
+    t = (
         db.query(Transformation)
         .filter(Transformation.salon_id == salon_id)
         .order_by(Transformation.created_at.desc())
-        .all()
+        .first()
+    )
+    b = (
+        db.query(Booking)
+        .filter(Booking.salon_id == salon_id)
+        .order_by(Booking.booked_at.desc())
+        .first()
     )
     return {
-        "booking_id": booking.id,
-        "status": booking.status,
+        "booking_id": b.id if b else None,
+        "status": b.status if b else None,
         "salon_id": salon.id,
-        "salon_name": salon.name if salon else None,
-        "transformation_id": transformation.id,
-        "after_image_url": transformation.after_image_url,
-        "service_type": transformation.service_type,
-        "artist_name": transformation.artist_name,
+        "salon_name": salon.name,
+        "transformation_id": t.id if t else None,
+        "after_image_url": t.after_image_url if t else None,
+        "service_type": t.service_type if t else None,
+        "artist_name": t.artist_name if t else None,
     }
    
 
@@ -93,7 +99,7 @@ async def try_on(
         tmp.write(selfie_bytes)
         tmp_path = tmp.name
 
-    result_url = run_mirror(tmp_path, style_description)
+    result_url = await run_mirror(tmp_path, style_description)
 
     # Clean up temp file
     Path(tmp_path).unlink(missing_ok=True)
@@ -139,9 +145,8 @@ def book_look(
     db.commit()
     db.refresh(booking)
 
+    salon = db.query(Salon).filter(Salon.id == t.salon_id).first()
     return {
-        "booking_id": booking.id,
-        "salon_id": booking.salon_id,
-        "transformation_id": transformation_id,
-        "status": booking.status,
+        "salon_id": salon.id if salon else None,
+        "salon_name": salon.name if salon else None,
     }

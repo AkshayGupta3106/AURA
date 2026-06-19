@@ -189,7 +189,7 @@ def get_my_salon(
     if not salon:
         raise HTTPException(status_code=404, detail="Salon not found")
     return _salon_dict(salon)
-router.get("/transformations")
+@router.get("/transformations")
 def get_creator_transformations(
     db: Session = Depends(get_db),
     user=Depends(require_creator),

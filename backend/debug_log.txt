@@ -1,0 +1,4 @@
+
+--- REBOOT RUN ---
+Successfully copied fallback image!
+HF Error: [Errno 11001] getaddrinfo failed
