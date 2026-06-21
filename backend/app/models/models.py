@@ -16,6 +16,7 @@ class User(Base):
     salons = relationship("Salon", back_populates="owner")
     bookings = relationship("Booking", back_populates="customer")
     videos = relationship("Video", back_populates="creator")
+    reviews = relationship("Review", back_populates="customer")
 
 
 class Salon(Base):
@@ -36,6 +37,7 @@ class Salon(Base):
     transformations = relationship("Transformation", back_populates="salon")
     videos = relationship("Video", back_populates="salon")
     bookings = relationship("Booking", back_populates="salon")
+    reviews = relationship("Review", back_populates="salon", cascade="all, delete-orphan")
 
 
 class Transformation(Base):
@@ -106,6 +108,20 @@ class Booking(Base):
     customer = relationship("User", back_populates="bookings")
     transformation = relationship("Transformation", back_populates="bookings")
     salon = relationship("Salon", back_populates="bookings")
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salon_id = Column(Integer, ForeignKey("salons.id"), nullable=False)
+    customer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    rating = Column(Integer, nullable=False)
+    text = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    salon = relationship("Salon", back_populates="reviews")
+    customer = relationship("User", back_populates="reviews")
 
 
 class OTPVerification(Base):

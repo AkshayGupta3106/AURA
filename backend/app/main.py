@@ -6,7 +6,8 @@ from pathlib import Path
 from app.database import engine
 from app.models import models  # noqa: F401 — registers all models with Base
 from app.models.models import Base
-from app.routers import auth, virality, salons, bookings, upload
+from app.routers import auth, virality, salons, bookings, upload, reviews
+
 
 # Create tables and auto-seed on startup
 import os
@@ -21,7 +22,30 @@ if str(backend_dir) not in sys.path:
 db_path = backend_dir / "aura.db"
 marker = backend_dir / "db_reset_marker.txt"
 
-if not marker.exists():
+# Force re-creation/seeding if salon count is less than 10
+from app.database import SessionLocal
+from app.models.models import Salon
+
+need_seed = False
+if not marker.exists() or not db_path.exists():
+    need_seed = True
+else:
+    try:
+        db = SessionLocal()
+        count = db.query(Salon).count()
+        db.close()
+        if count < 10:
+            need_seed = True
+            if marker.exists():
+                try:
+                    os.remove(marker)
+                except:
+                    pass
+    except Exception as e:
+        print(f"Error checking salon count: {e}")
+        need_seed = True
+
+if need_seed:
     if db_path.exists():
         try:
             os.remove(db_path)
@@ -124,6 +148,7 @@ app.include_router(virality.router)
 app.include_router(salons.router)
 app.include_router(bookings.router)
 app.include_router(upload.router)
+app.include_router(reviews.router)
 
 
 @app.get("/health")

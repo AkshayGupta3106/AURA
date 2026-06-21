@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.database import get_db
-from app.models.models import Salon, Transformation, Video
+from app.models.models import Salon, Transformation, Video, Review
 
 router = APIRouter(prefix="/salons", tags=["salons"])
 
@@ -28,6 +28,18 @@ def _video_dict(v: Video) -> dict:
         "video_url": v.video_url,
         "virality_score": v.virality_score,
         "created_at": v.created_at.isoformat() if v.created_at else None,
+    }
+
+
+def _review_dict(r: Review) -> dict:
+    return {
+        "id": r.id,
+        "author": r.customer.name,
+        "rating": r.rating,
+        "text": r.text,
+        "date": r.created_at.strftime("%B %d, %Y") if r.created_at else "Just now",
+        "service": "Hair styling",
+        "is_db": True,
     }
 
 
@@ -74,6 +86,11 @@ def list_salons(
 
         service_types = list({t.service_type for t in transformations if t.service_type})
 
+        reviews = db.query(Review).filter(Review.salon_id == s.id).all()
+        total_rating = sum(r.rating for r in reviews) + 14
+        total_count = len(reviews) + 3
+        avg_rating = round(total_rating / total_count, 1)
+
         results.append({
             "id": s.id,
             "name": s.name,
@@ -83,6 +100,8 @@ def list_salons(
             "service_types": service_types,
             "transformation_count": len(transformations),
             "published_video_count": published_videos,
+            "rating": avg_rating,
+            "reviews_count": total_count,
         })
 
     return results
@@ -116,6 +135,11 @@ def get_salon(salon_id: int, db: Session = Depends(get_db)):
     service_types = list({t.service_type for t in transformations if t.service_type})
     texture_tags = list({t.hair_texture_tag for t in transformations if t.hair_texture_tag})
 
+    db_reviews = db.query(Review).filter(Review.salon_id == salon_id).order_by(Review.created_at.desc()).all()
+    total_rating = sum(r.rating for r in db_reviews) + 14
+    total_count = len(db_reviews) + 3
+    avg_rating = round(total_rating / total_count, 1)
+
     return {
         "id": salon.id,
         "name": salon.name,
@@ -126,4 +150,7 @@ def get_salon(salon_id: int, db: Session = Depends(get_db)):
         "texture_tags": texture_tags,
         "transformations": [_transformation_dict(t) for t in transformations],
         "videos": [_video_dict(v) for v in published_videos],
+        "reviews": [_review_dict(r) for r in db_reviews],
+        "rating": avg_rating,
+        "reviews_count": total_count,
     }

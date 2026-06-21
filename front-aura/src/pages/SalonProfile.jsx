@@ -107,10 +107,17 @@ export default function SalonProfile() {
     if (!user) { navigate("/login"); return; }
     setSubmittingReview(true);
     try {
-      await api.post("/reviews", { salon_id: salonId, rating: reviewRating, text: reviewText });
+      const { data } = await api.post("/reviews", { salon_id: Number(salonId), rating: reviewRating, text: reviewText });
       setReviewText(""); setReviewRating(5);
-    } catch {}
-    finally { setSubmittingReview(false); }
+      setSalon(prev => ({
+        ...prev,
+        reviews: [data, ...(prev.reviews || [])],
+        reviews_count: (prev.reviews_count || 3) + 1,
+        rating: Number((((prev.rating || 4.8) * (prev.reviews_count || 3)) + reviewRating) / ((prev.reviews_count || 3) + 1)).toFixed(1)
+      }));
+    } catch (err) {
+      console.error(err);
+    } finally { setSubmittingReview(false); }
   }
 
   if (loading) return (
@@ -142,7 +149,7 @@ export default function SalonProfile() {
     { key: "portfolio", label: `Portfolio (${salon.transformations?.length || 0})` },
     ...(hasVideos ? [{ key: "videos", label: `Videos (${salon.videos?.length || 0})` }] : []),
     { key: "services", label: "Services & Pricing" },
-    { key: "reviews", label: `Reviews (${MOCK_REVIEWS.length})` },
+    { key: "reviews", label: `Reviews (${salon.reviews_count || MOCK_REVIEWS.length})` },
   ];
 
   return (
@@ -276,12 +283,15 @@ export default function SalonProfile() {
             {/* Reviews tab */}
             {tab === "reviews" && (
               <div className="space-y-4">
-                {MOCK_REVIEWS.map(r => (
-                  <div key={r.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                {[
+                  ...(salon.reviews || []).map(r => ({ ...r, is_db: true })),
+                  ...MOCK_REVIEWS
+                ].map((r, index) => (
+                  <div key={r.is_db ? `db-${r.id}` : `mock-${r.id || index}`} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-burgundy flex items-center justify-center text-white text-xs font-bold">
-                          {r.author[0]}
+                          {r.author?.[0] || "U"}
                         </div>
                         <div>
                           <p className="text-sm font-medium text-charcoal">{r.author}</p>
