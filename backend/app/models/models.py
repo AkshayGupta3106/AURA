@@ -27,6 +27,10 @@ class Salon(Base):
     city = Column(String, nullable=False)
     neighborhood = Column(String)
     description = Column(Text)
+    phone = Column(String, nullable=True)
+    instagram = Column(String, nullable=True)
+    experience_years = Column(Integer, nullable=True)
+    open_for_bookings = Column(Boolean, default=True)
 
     owner = relationship("User", back_populates="salons")
     transformations = relationship("Transformation", back_populates="salon")

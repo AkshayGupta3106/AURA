@@ -25,10 +25,8 @@ def send_otp_email(email: str, otp: str):
     smtp_sender = os.getenv("SMTP_SENDER", smtp_user)
     
     if not (smtp_host and smtp_port and smtp_user and smtp_pass):
-        raise HTTPException(
-            status_code=400,
-            detail="SMTP configuration is missing in backend/.env. Please add SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASSWORD to send emails."
-        )
+        print(f"[OTP SERVICE] SMTP credentials not fully configured. Email was not sent via SMTP, but OTP has been logged above.")
+        return
         
     try:
         msg = MIMEMultipart()

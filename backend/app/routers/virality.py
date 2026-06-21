@@ -226,6 +226,10 @@ def _salon_dict(salon: Salon) -> dict:
         "city": salon.city,
         "neighborhood": salon.neighborhood,
         "description": salon.description,
+        "phone": salon.phone,
+        "instagram": salon.instagram,
+        "experience_years": salon.experience_years,
+        "open_for_bookings": salon.open_for_bookings,
     }
 
 def get_creator_salon(creator: User, db: Session) -> Salon:

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from pathlib import Path
 import uuid
+from typing import Optional
 
 from app.database import get_db
 from app.models.models import Salon, Transformation, User
@@ -44,6 +45,17 @@ class SalonCreate(BaseModel):
     description: str = ""
 
 
+class SalonUpdate(BaseModel):
+    name: Optional[str] = None
+    city: Optional[str] = None
+    neighborhood: Optional[str] = None
+    description: Optional[str] = None
+    phone: Optional[str] = None
+    instagram: Optional[str] = None
+    experience_years: Optional[int] = None
+    open_for_bookings: Optional[bool] = None
+
+
 def _salon_dict(salon: Salon, db: Session) -> dict:
     t_count = db.query(Transformation).filter(Transformation.salon_id == salon.id).count()
     return {
@@ -52,6 +64,10 @@ def _salon_dict(salon: Salon, db: Session) -> dict:
         "city": salon.city,
         "neighborhood": salon.neighborhood,
         "description": salon.description,
+        "phone": salon.phone,
+        "instagram": salon.instagram,
+        "experience_years": salon.experience_years,
+        "open_for_bookings": salon.open_for_bookings,
         "transformation_count": t_count,
     }
 
@@ -87,6 +103,38 @@ def get_my_salon(
     salon = db.query(Salon).filter(Salon.owner_id == creator.id).first()
     if not salon:
         raise HTTPException(status_code=404, detail="Salon not found")
+    return _salon_dict(salon, db)
+
+
+@router.patch("/salon/me")
+def update_my_salon(
+    payload: SalonUpdate,
+    db: Session = Depends(get_db),
+    creator: User = Depends(require_creator),
+):
+    salon = db.query(Salon).filter(Salon.owner_id == creator.id).first()
+    if not salon:
+        raise HTTPException(status_code=404, detail="Salon not found")
+
+    if payload.name is not None:
+        salon.name = payload.name
+    if payload.city is not None:
+        salon.city = payload.city
+    if payload.neighborhood is not None:
+        salon.neighborhood = payload.neighborhood
+    if payload.description is not None:
+        salon.description = payload.description
+    if payload.phone is not None:
+        salon.phone = payload.phone
+    if payload.instagram is not None:
+        salon.instagram = payload.instagram
+    if payload.experience_years is not None:
+        salon.experience_years = payload.experience_years
+    if payload.open_for_bookings is not None:
+        salon.open_for_bookings = payload.open_for_bookings
+
+    db.commit()
+    db.refresh(salon)
     return _salon_dict(salon, db)
 
 

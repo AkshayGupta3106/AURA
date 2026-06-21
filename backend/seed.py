@@ -52,11 +52,11 @@ def download_image(url: str, filename: str) -> str:
         if r.status_code == 200:
             with open(dest, "wb") as f:
                 f.write(r.content)
-            print(f"  ↓ {filename}")
+            print(f"  [OK] {filename}")
         else:
-            print(f"  ✗ {filename} (HTTP {r.status_code}) — using URL directly")
+            print(f"  [ERROR] {filename} (HTTP {r.status_code}) - using URL directly")
     except Exception as e:
-        print(f"  ✗ {filename} ({e}) — using URL directly")
+        print(f"  [ERROR] {filename} ({e}) - using URL directly")
     return f"/static/images/{filename}"
 
 
@@ -282,19 +282,19 @@ def seed():
 
         db.commit()
 
-        print("✅  Seed complete.\n")
-        print(f"   Creator  →  creator@aura.demo / demo1234")
-        print(f"   Customer →  customer@aura.demo / demo1234")
-        print(f"   Salon: Studio Kesh (Koramangala) — id={salon.id}")
+        print("SUCCESS  Seed complete.\n")
+        print(f"   Creator  -->  creator@aura.demo / demo1234")
+        print(f"   Customer -->  customer@aura.demo / demo1234")
+        print(f"   Salon: Studio Kesh (Koramangala) - id={salon.id}")
         print(f"   {len(t_records)} transformations, 1 published video (score 78.4), 1 booking")
         print(f"   Mirror fallback image: {fallback_path}")
         print()
-        print("   ⚠  Demo images now use salon-appropriate Pexels hair photos.")
+        print("   WARNING  Demo images now use salon-appropriate Pexels hair photos.")
         print(f"      Images are in: {STATIC_IMAGES}")
 
     except Exception as e:
         db.rollback()
-        print(f"\n❌  Seed failed: {e}")
+        print(f"\nERROR  Seed failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

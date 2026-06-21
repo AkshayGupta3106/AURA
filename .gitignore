@@ -1,9 +1,47 @@
-myenv
-frontend/node_modules
+# Dependencies
+node_modules/
+frontend/node_modules/
+front-aura/node_modules/
+
+# Production build outputs
+dist/
+front-aura/dist/
+build/
+
+# Virtual Environments
+venv/
+myenv/
+.venv/
+env/
+
+# Python caching & build files
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+backend/aura.db
+
+# Environment variables & secrets
+.env
+.env.local
 backend/.env
-D:\Download\AURA\backend\.env
-D:\Download\AURA\venv
-frontend
-front-aura/node_modules
+front-aura/.env
+front-aura/.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated / Uploaded static assets (videos and extracted frames)
+backend/static/frames/
+backend/static/videos/
+backend/static/uploads/
