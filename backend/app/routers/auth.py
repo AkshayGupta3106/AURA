@@ -43,29 +43,12 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     if payload.role not in ("creator", "customer"):
         raise HTTPException(status_code=400, detail="role must be 'creator' or 'customer'")
 
-    if db.query(User).filter(User.email == payload.email).first():
-        raise HTTPException(status_code=409, detail="Email already registered")
-
-    # OTP Verification
-    if payload.otp != "999999":
-        otp_record = (
-            db.query(OTPVerification)
-            .filter(OTPVerification.email == payload.email)
-            .order_by(OTPVerification.created_at.desc())
-            .first()
-        )
-        if not otp_record:
-            raise HTTPException(status_code=400, detail="No OTP requested for this email")
-
-        if otp_record.expires_at < datetime.utcnow():
-            raise HTTPException(status_code=400, detail="OTP has expired. Please request a new one.")
-
-        if otp_record.otp != payload.otp:
-            raise HTTPException(status_code=400, detail="Invalid OTP code. Please try again.")
+    if db.query(User).filter(User.username == payload.username).first():
+        raise HTTPException(status_code=409, detail="Username already registered")
 
     user = User(
         name=payload.name,
-        email=payload.email,
+        username=payload.username,
         password_hash=hash_password(payload.password),
         role=payload.role,
     )
@@ -80,9 +63,9 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == payload.email).first()
+    user = db.query(User).filter(User.username == payload.username).first()
     if not user or not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(status_code=401, detail="Invalid username or password")
 
     token = create_access_token({"sub": str(user.id), "role": user.role})
     return TokenResponse(access_token=token, user_id=user.id, role=user.role, name=user.name)

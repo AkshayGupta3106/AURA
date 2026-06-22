@@ -7,10 +7,9 @@ from datetime import datetime
 
 class RegisterRequest(BaseModel):
     name: str
-    email: EmailStr
+    username: str
     password: str
     role: str   # "creator" | "customer"
-    otp: str    # OTP verification code
 
 
 class OTPSendRequest(BaseModel):
@@ -18,7 +17,7 @@ class OTPSendRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    username: str
     password: str
 
 
@@ -34,7 +33,7 @@ class TokenResponse(BaseModel):
 class UserOut(BaseModel):
     id: int
     name: str
-    email: str
+    username: str
     role: str
 
     class Config:

@@ -8,7 +8,7 @@ export default function Settings() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState("account");
-  const [form, setForm] = useState({ name: user?.name || "", email: user?.email || "", currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [form, setForm] = useState({ name: user?.name || "", username: user?.username || "", currentPassword: "", newPassword: "", confirmPassword: "" });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -101,10 +101,10 @@ export default function Settings() {
                       className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-burgundy transition" />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
-                    <input value={form.email} disabled
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Username</label>
+                    <input value={form.username} disabled
                       className="w-full border border-gray-100 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-400 cursor-not-allowed" />
-                    <p className="text-xs text-gray-400 mt-1">Email cannot be changed. Contact support if needed.</p>
+                    <p className="text-xs text-gray-400 mt-1">Username cannot be changed. Contact support if needed.</p>
                   </div>
                   <div>
                     <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Role</label>

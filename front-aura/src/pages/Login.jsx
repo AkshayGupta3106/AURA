@@ -9,7 +9,7 @@ export default function Login() {
   const [searchParams] = useSearchParams();
   const nextPath = searchParams.get("next");
 
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -24,10 +24,10 @@ export default function Login() {
     setLoading(true);
     try {
       const { data } = await api.post("/auth/login", form);
-      login({ id: data.user_id, name: data.name, role: data.role, email: form.email }, data.access_token);
+      login({ id: data.user_id, name: data.name, role: data.role, username: form.username }, data.access_token);
       navigate(nextPath || (data.role === "creator" ? "/creator/dashboard" : "/explore"));
     } catch (err) {
-      setError(err.response?.data?.detail || "Invalid email or password");
+      setError(err.response?.data?.detail || "Invalid username or password");
     } finally {
       setLoading(false);
     }
@@ -71,11 +71,11 @@ export default function Login() {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Username</label>
               <input
-                name="email" type="email" value={form.email}
+                name="username" type="text" value={form.username}
                 onChange={handleChange} required
-                placeholder="you@email.com"
+                placeholder="Your username"
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-burgundy focus:ring-2 focus:ring-burgundy/10 transition"
               />
             </div>

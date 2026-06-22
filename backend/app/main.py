@@ -26,32 +26,15 @@ marker = backend_dir / "db_reset_marker.txt"
 from app.database import SessionLocal
 from app.models.models import Salon
 
-need_seed = False
-if not marker.exists() or not db_path.exists():
-    need_seed = True
-else:
-    try:
-        db = SessionLocal()
-        count = db.query(Salon).count()
-        db.close()
-        if count < 10:
-            need_seed = True
-            if marker.exists():
-                try:
-                    os.remove(marker)
-                except:
-                    pass
-    except Exception as e:
-        print(f"Error checking salon count: {e}")
-        need_seed = True
+need_seed = True
 
 if need_seed:
-    if db_path.exists():
-        try:
-            os.remove(db_path)
-            print("Dropped old SQLite database to apply new schema.")
-        except Exception as e:
-            print(f"Could not drop old database: {e}")
+    try:
+        # Drop all tables first to wipe old schema
+        Base.metadata.drop_all(bind=engine)
+        print("Dropped all existing tables to apply new schema.")
+    except Exception as e:
+        print(f"Could not drop tables: {e}")
             
     Base.metadata.create_all(bind=engine)
     
@@ -59,6 +42,10 @@ if need_seed:
         from seed import seed
         seed()
         print("Successfully auto-seeded database on startup.")
+        try:
+            (backend_dir / "recreation_success.txt").write_text("recreated and seeded successfully")
+        except Exception as e:
+            print(f"Could not write success marker: {e}")
     except Exception as e:
         print(f"Error auto-seeding database: {e}")
         

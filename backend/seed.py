@@ -612,13 +612,13 @@ def seed():
         # ── Users ────────────────────────────────────────────────────────────
         creator = User(
             name="Priya Sharma",
-            email="creator@aura.demo",
+            username="creator",
             password_hash=hash_password("demo1234"),
             role="creator",
         )
         customer = User(
             name="Ananya Menon",
-            email="customer@aura.demo",
+            username="customer",
             password_hash=hash_password("demo1234"),
             role="customer",
         )
@@ -704,8 +704,8 @@ def seed():
         db.commit()
 
         print("SUCCESS  Seed complete.\n")
-        print(f"   Creator  -->  creator@aura.demo / demo1234")
-        print(f"   Customer -->  customer@aura.demo / demo1234")
+        print(f"   Creator  -->  creator / demo1234")
+        print(f"   Customer -->  customer / demo1234")
         print(f"   Seeded {len(SALONS_DATA)} salons in total.")
         print(f"   Mirror fallback image: {fallback_path}")
         print()

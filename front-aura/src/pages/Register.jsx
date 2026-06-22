@@ -11,138 +11,38 @@ export default function Register() {
   const nextPath = searchParams.get("next");
 
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: defaultRole });
+  const [form, setForm] = useState({ name: "", username: "", password: "", confirmPassword: "", role: defaultRole });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
-  // OTP specific state
-  const [otp, setOtp] = useState(new Array(6).fill(""));
-  const [sandboxOtp, setSandboxOtp] = useState("");
-  const [resendTimer, setResendTimer] = useState(0);
-  const otpRefs = useRef([]);
-
-  useEffect(() => {
-    let interval;
-    if (resendTimer > 0) {
-      interval = setInterval(() => {
-        setResendTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [resendTimer]);
 
   function handleChange(e) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
   }
 
-  // Handle Step 2 Submit: Request OTP and proceed to step 3
-  async function handleSendOtp(e) {
+  // Handle Step 2 Submit: Direct Registration
+  async function handleRegister(e) {
     e.preventDefault();
     setError("");
-    setLoading(true);
-    try {
-      const { data } = await api.post("/auth/send-otp", { email: form.email });
-      if (data && data.sandbox_otp) {
-        setSandboxOtp(data.sandbox_otp);
-      } else {
-        setSandboxOtp("");
-      }
-      setStep(3);
-      setResendTimer(30);
-      setOtp(new Array(6).fill(""));
-    } catch (err) {
-      setError(err.response?.data?.detail || "Failed to send verification code. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Resend OTP
-  async function handleResendOtp() {
-    setError("");
-    setLoading(true);
-    try {
-      const { data } = await api.post("/auth/send-otp", { email: form.email });
-      if (data && data.sandbox_otp) {
-        setSandboxOtp(data.sandbox_otp);
-      } else {
-        setSandboxOtp("");
-      }
-      setResendTimer(30);
-      setOtp(new Array(6).fill(""));
-    } catch (err) {
-      setError(err.response?.data?.detail || "Failed to resend verification code.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Handle Step 3 Submit: Verify OTP and Register
-  async function handleVerifyAndRegister(e) {
-    e.preventDefault();
-    setError("");
-    const combinedOtp = otp.join("");
-    if (combinedOtp.length < 6) {
-      setError("Please enter the complete 6-digit verification code.");
+    if (form.password !== form.confirmPassword) {
+      setError("Passwords do not match. Please verify.");
       return;
     }
     setLoading(true);
     try {
       const { data } = await api.post("/auth/register", {
-        ...form,
-        otp: combinedOtp
+        name: form.name,
+        username: form.username,
+        password: form.password,
+        role: form.role
       });
-      login({ id: data.user_id, name: data.name, role: data.role, email: form.email }, data.access_token);
+      login({ id: data.user_id, name: data.name, role: data.role, username: form.username }, data.access_token);
       navigate(nextPath || (data.role === "creator" ? "/creator/onboarding" : "/explore"));
     } catch (err) {
-      setError(err.response?.data?.detail || "Verification failed. Please check the code and try again.");
+      setError(err.response?.data?.detail || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
   }
-
-  const handleOtpChange = (value, idx) => {
-    const cleanValue = value.replace(/[^0-9]/g, "");
-    if (!cleanValue && value !== "") return;
-
-    const newOtp = [...otp];
-    newOtp[idx] = cleanValue.substring(cleanValue.length - 1);
-    setOtp(newOtp);
-
-    // Auto-focus next field if typed
-    if (cleanValue && idx < 5) {
-      otpRefs.current[idx + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (e, idx) => {
-    if (e.key === "Backspace") {
-      if (!otp[idx] && idx > 0) {
-        const newOtp = [...otp];
-        newOtp[idx - 1] = "";
-        setOtp(newOtp);
-        otpRefs.current[idx - 1]?.focus();
-      }
-    }
-  };
-
-  const handleOtpPaste = (e) => {
-    e.preventDefault();
-    const pasteData = e.clipboardData.getData("text").trim();
-    if (!/^\d+$/.test(pasteData)) return;
-
-    const digits = pasteData.slice(0, 6).split("");
-    const newOtp = [...otp];
-    for (let i = 0; i < 6; i++) {
-      if (digits[i]) {
-        newOtp[i] = digits[i];
-      }
-    }
-    setOtp(newOtp);
-
-    const targetIdx = Math.min(digits.length - 1, 5);
-    otpRefs.current[targetIdx]?.focus();
-  };
 
   return (
     <div className="min-h-screen bg-cream flex">
@@ -167,7 +67,7 @@ export default function Register() {
         <div className="w-full max-w-md">
           <Link to="/" className="lg:hidden font-display text-xl text-charcoal block mb-8">AURA</Link>
           <h1 className="font-display text-3xl text-charcoal mb-1">
-            {step === 1 ? "Join AURA" : step === 2 ? "Your details" : "Verify email"}
+            {step === 1 ? "Join AURA" : "Your details"}
           </h1>
           <p className="text-gray-400 text-sm mb-8">
             Already have an account?{" "}
@@ -224,7 +124,7 @@ export default function Register() {
 
           {/* Step 2: Details */}
           {step === 2 && (
-            <form onSubmit={handleSendOtp} className="space-y-4">
+            <form onSubmit={handleRegister} className="space-y-4">
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">{error}</div>
               )}
@@ -244,16 +144,23 @@ export default function Register() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
-                <input name="email" type="email" value={form.email} onChange={handleChange} required
-                  placeholder="you@email.com"
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Username</label>
+                <input name="username" value={form.username} onChange={handleChange} required
+                  placeholder="Choose a username"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-burgundy focus:ring-2 focus:ring-burgundy/10 transition" />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Password</label>
                 <input name="password" type="password" value={form.password} onChange={handleChange}
-                  required minLength={6} placeholder="Min 6 characters"
+                  required placeholder="Choose a password"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-burgundy focus:ring-2 focus:ring-burgundy/10 transition" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide">Confirm Password</label>
+                <input name="confirmPassword" type="password" value={form.confirmPassword} onChange={handleChange}
+                  required placeholder="Confirm your password"
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-burgundy focus:ring-2 focus:ring-burgundy/10 transition" />
               </div>
 
@@ -262,7 +169,7 @@ export default function Register() {
                 {loading ? (
                   <>
                     <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                    Sending code...
+                    Creating account...
                   </>
                 ) : `Create ${form.role === "creator" ? "Creator" : ""} Account`}
               </button>
@@ -271,90 +178,6 @@ export default function Register() {
                 By registering you agree to our <span className="text-burgundy cursor-pointer hover:underline">Terms</span> and{" "}
                 <span className="text-burgundy cursor-pointer hover:underline">Privacy Policy</span>
               </p>
-            </form>
-          )}
-
-          {/* Step 3: OTP Verification */}
-          {step === 3 && (
-            <form onSubmit={handleVerifyAndRegister} className="space-y-6">
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">{error}</div>
-              )}
-
-              <div className="text-center mb-6">
-                <div className="w-12 h-12 bg-burgundy/10 rounded-full flex items-center justify-center mx-auto mb-3 text-burgundy text-xl">
-                  ✉️
-                </div>
-                <p className="text-sm text-gray-500 leading-relaxed mb-3">
-                  We sent a 6-digit verification code to<br />
-                  <span className="font-semibold text-charcoal">{form.email}</span>
-                </p>
-                {sandboxOtp && (
-                  <div className="bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl px-4 py-3 text-center leading-normal">
-                    ⚠️ <strong>Demo Mode:</strong> Email sender is not configured. Please use code <strong className="text-burgundy text-sm">{sandboxOtp}</strong> or <strong>999999</strong> to verify.
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-3 uppercase tracking-wide text-center">
-                  Enter Verification Code
-                </label>
-                <div className="flex justify-between gap-2 max-w-sm mx-auto">
-                  {otp.map((digit, idx) => (
-                    <input
-                      key={idx}
-                      ref={(el) => (otpRefs.current[idx] = el)}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      pattern="[0-9]*"
-                      value={digit}
-                      onChange={(e) => handleOtpChange(e.target.value, idx)}
-                      onKeyDown={(e) => handleOtpKeyDown(e, idx)}
-                      onPaste={handleOtpPaste}
-                      className="w-12 h-14 text-center text-xl font-bold border border-gray-200 rounded-xl focus:outline-none focus:border-burgundy focus:ring-2 focus:ring-burgundy/10 transition bg-white text-charcoal"
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || otp.join("").length < 6}
-                className="w-full bg-burgundy text-white rounded-xl py-3.5 text-sm font-semibold hover:bg-burgundy-dark transition disabled:opacity-50 active:scale-[0.99] flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
-                    Verifying...
-                  </>
-                ) : (
-                  "Verify & Create Account"
-                )}
-              </button>
-
-              <div className="flex flex-col items-center gap-3 pt-2">
-                <button
-                  type="button"
-                  disabled={resendTimer > 0 || loading}
-                  onClick={handleResendOtp}
-                  className="text-sm font-medium text-burgundy hover:underline disabled:text-gray-400 disabled:no-underline"
-                >
-                  {resendTimer > 0 ? `Resend code in ${resendTimer}s` : "Resend Code"}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep(2);
-                    setError("");
-                  }}
-                  className="text-xs text-gray-500 hover:text-burgundy font-medium flex items-center gap-1 transition"
-                >
-                  ← Edit email / details
-                </button>
-              </div>
             </form>
           )}
         </div>
