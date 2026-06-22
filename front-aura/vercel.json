@@ -7,6 +7,10 @@
     {
       "source": "/static/:path*",
       "destination": "https://aura-w5b0.onrender.com/static/:path*"
+    },
+    {
+      "source": "/((?!api|static).*)",
+      "destination": "/index.html"
     }
   ]
 }
