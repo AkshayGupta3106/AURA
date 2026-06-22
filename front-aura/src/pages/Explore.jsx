@@ -37,6 +37,16 @@ export default function Explore() {
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
   const [viewMode, setViewMode] = useState("grid");
 
+  const sortedSalons = [...salons].sort((a, b) => {
+    if (sortBy === "Highest Rated") {
+      return (b.rating || 0) - (a.rating || 0);
+    } else if (sortBy === "Most Recent") {
+      return b.id - a.id;
+    } else { // "Most Popular"
+      return (b.reviews_count || 0) - (a.reviews_count || 0);
+    }
+  });
+
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
@@ -52,9 +62,6 @@ export default function Explore() {
 
   function handleSearch(e) {
     e.preventDefault();
-    const val = e.target.q.value.trim();
-    setSearchQuery(val);
-    setSearchParams(val ? { q: val } : {});
   }
 
   const clearFilters = () => {
@@ -79,7 +86,11 @@ export default function Explore() {
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            <input name="q" defaultValue={searchQuery} placeholder="Search salons, services, areas..."
+            <input name="q" value={searchQuery} onChange={e => {
+              const val = e.target.value;
+              setSearchQuery(val);
+              setSearchParams(val ? { q: val } : {});
+            }} placeholder="Search salons, services, areas..."
               className="w-full border border-gray-200 rounded-xl pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-burgundy bg-white transition placeholder:text-gray-300" />
           </div>
           <input type="text" placeholder="City" value={cityFilter} onChange={e => setCityFilter(e.target.value)}
@@ -135,7 +146,7 @@ export default function Explore() {
           <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-3"}>
             {[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}
           </div>
-        ) : salons.length === 0 ? (
+        ) : sortedSalons.length === 0 ? (
           <div className="py-20 text-center">
             <p className="text-4xl mb-3">✂️</p>
             <p className="text-sm text-gray-400 mb-4">
@@ -147,9 +158,9 @@ export default function Explore() {
           </div>
         ) : (
           <>
-            <p className="text-xs text-gray-400 mb-4">{salons.length} creator{salons.length !== 1 ? "s" : ""} found</p>
+            <p className="text-xs text-gray-400 mb-4">{sortedSalons.length} creator{sortedSalons.length !== 1 ? "s" : ""} found</p>
             <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-3"}>
-              {salons.map((salon, i) => (
+              {sortedSalons.map((salon, i) => (
                 <SalonCard key={salon.id} salon={salon} viewMode={viewMode} delay={i * 50}
                   isFav={user ? isFavorite(salon.id) : false}
                   onToggleFav={user ? () => toggleFavorite(salon.id) : null} />

@@ -14,6 +14,7 @@ export default function Register() {
   const [form, setForm] = useState({ name: "", username: "", password: "", confirmPassword: "", role: defaultRole });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [modalType, setModalType] = useState(null); // 'terms' | 'privacy' | null
 
   function handleChange(e) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }));
@@ -175,13 +176,69 @@ export default function Register() {
               </button>
 
               <p className="text-xs text-gray-400 text-center">
-                By registering you agree to our <span className="text-burgundy cursor-pointer hover:underline">Terms</span> and{" "}
-                <span className="text-burgundy cursor-pointer hover:underline">Privacy Policy</span>
+                By registering you agree to our <span onClick={() => setModalType("terms")} className="text-burgundy cursor-pointer hover:underline">Terms</span> and{" "}
+                <span onClick={() => setModalType("privacy")} className="text-burgundy cursor-pointer hover:underline">Privacy Policy</span>
               </p>
             </form>
           )}
         </div>
       </div>
+
+      {/* Modal Dialog for Terms & Privacy Policy */}
+      {modalType && (
+        <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex items-center justify-center z-[999] px-5" style={{ backgroundColor: "rgba(33, 33, 33, 0.6)", backdropFilter: "blur(4px)" }}>
+          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl border border-gray-100 relative max-h-[85vh] overflow-y-auto">
+            {/* Close button (cross sign) */}
+            <button
+              onClick={() => setModalType(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-charcoal text-2xl transition font-bold"
+            >
+              ×
+            </button>
+
+            {modalType === "terms" ? (
+              <div>
+                <h3 className="font-display text-2xl text-charcoal mb-2 font-bold">Terms of Service</h3>
+                <p className="text-xs text-gray-400 mb-4">Last updated: June 21, 2026</p>
+                <div className="text-gray-600 text-sm space-y-4 leading-relaxed">
+                  <p>
+                    By accessing or using the AURA platform, you agree to comply with and be bound by these Terms of Service. Please read them carefully.
+                  </p>
+                  <h4 className="font-semibold text-charcoal text-sm mt-4">1. Use of Our Services</h4>
+                  <p>
+                    You must be at least 18 years old to create an account or book services. You agree to provide accurate and complete information during registration.
+                  </p>
+                  <h4 className="font-semibold text-charcoal text-sm mt-4">2. Bookings & Cancellations</h4>
+                  <p>
+                    Appointments booked on AURA are subject to creator availability. Any cancellations or rescheduling must be done in accordance with the individual creator's policies.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h3 className="font-display text-2xl text-charcoal mb-2 font-bold">Privacy Policy</h3>
+                <p className="text-xs text-gray-400 mb-4">Last updated: June 21, 2026</p>
+                <div className="text-gray-600 text-sm space-y-4 leading-relaxed">
+                  <p>
+                    At AURA, we value your privacy. This Privacy Policy describes how we collect, use, and share your personal information when you use our website and mobile application.
+                  </p>
+                  <h4 className="font-semibold text-charcoal text-sm mt-4">1. Information We Collect</h4>
+                  <p>
+                    We collect information you provide directly to us, including your name, email address, password, phone number, and profile details when you sign up or edit your profile.
+                  </p>
+                  <h4 className="font-semibold text-charcoal text-sm mt-4">2. How We Use Your Information</h4>
+                  <p>
+                    We use the information we collect to operate, maintain, and improve our services, including processing bookings, verifying accounts, and generating AI insights.
+                  </p>
+                  <p>
+                    We do not sell your personal data to third parties.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,16 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../api/AuthContext";
 
 export default function Footer() {
+  const { user, logout } = useAuth();
+
+  function handleCreatorLinkClick(e) {
+    if (!user || user.role !== "creator") {
+      e.preventDefault();
+      alert("This is for creators only. Sign in as a creator to see the available page.");
+    }
+  }
+
   return (
     <footer className="bg-charcoal text-white mt-auto">
       <div className="max-w-6xl mx-auto px-5 py-12">
@@ -22,9 +32,9 @@ export default function Footer() {
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">For Creators</p>
             <div className="space-y-2">
-              <Link to="/register?role=creator" className="block text-sm text-gray-300 hover:text-white transition">Join as Creator</Link>
-              <Link to="/creator/dashboard" className="block text-sm text-gray-300 hover:text-white transition">Creator Dashboard</Link>
-              <Link to="/creator/upload" className="block text-sm text-gray-300 hover:text-white transition">Upload Work</Link>
+              <Link to="/register?role=creator" onClick={() => { if (user) logout(); }} className="block text-sm text-gray-300 hover:text-white transition">Join as Creator</Link>
+              <Link to="/creator/dashboard" onClick={handleCreatorLinkClick} className="block text-sm text-gray-300 hover:text-white transition">Creator Dashboard</Link>
+              <Link to="/creator/upload" onClick={handleCreatorLinkClick} className="block text-sm text-gray-300 hover:text-white transition">Upload Work</Link>
             </div>
           </div>
           <div>
